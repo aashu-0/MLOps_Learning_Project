@@ -1,52 +1,63 @@
 name: CI/CD Pipeline
 
-on: push
+on:
+  push:
+    branches: [ main ]
 
 jobs:
   testing-and-deployment:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout code
-        uses: actions/checkout@v3
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: setup python
-        uses: actions/setup-python@v2
+      # Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
-      - name: cache pip dependencies
-        uses: actions/cache@v3
+      # Install uv
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      # Cache uv dependencies
+      - name: Cache uv
+        uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          path: |
+            ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-uv-
 
-      - name: install dependencies
+      # Sync dependencies
+      - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          uv sync --frozen
 
-      - name: run pipeline
+      # Run DVC pipeline inside uv env
+      - name: Run pipeline
         env:
-          DASGHUB_TOKEN: ${{ secrets.DASGHUB_TOKEN }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
-          dvc repro
+          uv run dvc repro
 
-      # - name: run model tests
+      # Run tests
+      # - name: Run model tests
       #   env:
-      #     DASGHUB_TOKEN: ${{ secrets.DASGHUB_TOKEN }}
+      #     DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
       #   run: |
-      #     python -m unittest tests/test_model.py
+      #     uv run python -m unittest tests/test_model.py
 
-      # - name: promote model to production
+      # Promote model
+      # - name: Promote model
       #   if: success()
       #   env:
-      #     DASGHUB_TOKEN: ${{ secrets.DASGHUB_TOKEN }}
-      #   run: python scripts/promote_model.py
-
-      # - name: run Flask app tests
-      #   if: success()
-      #   env:
-      #     DASGHUB_TOKEN: ${{ secrets.DASGHUB_TOKEN }}
-      #   run: python -m unittest tests/test_flask_app.py
+      #     DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+      #   run: |
+      #     uv run python scripts/promote_model.py
