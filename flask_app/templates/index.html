@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Classifier</title>
+    <style>
+        :root {
+            --bg-color: #fcfcfc;
+            --text-main: #555555;
+            --border: #ececec;
+            --pos-bg: #f0fdf4;
+            --pos-txt: #166534;
+            --neg-bg: #fef2f2;
+            --neg-txt: #991b1b;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h2 {
+            font-weight: 300;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        /* Using Input instead of Textarea for auto-submit on Enter */
+        .search-input {
+            width: 100%;
+            padding: 18px 24px;
+            border: 1px solid var(--border);
+            border-radius: 50px; /* Pill shape for a clean look */
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            background: #fff;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.03);
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: #d1d1d1;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #a0a0a0;
+            margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .result-box {
+            margin-top: 40px;
+            padding: 12px 24px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .positive { background-color: var(--pos-bg); color: var(--pos-txt); border: 1px solid #dcfce7; }
+        .negative { background-color: var(--neg-bg); color: var(--neg-txt); border: 1px solid #fee2e2; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Keep button hidden; Enter triggers the form */
+        .hidden-btn { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Sentiment Analysis</h2>
+        
+        <form action="/predict" method="POST">
+            <input 
+                type="text" 
+                name="text" 
+                class="search-input" 
+                placeholder="Type your text..." 
+                required 
+                autofocus
+                autocomplete="off"
+            >
+            <p class="hint">PRESS ENTER TO ANALYZE</p>
+            <button type="submit" class="hidden-btn"></button>
+        </form>
+
+        {% if result is not none %}
+            {% if result|string == '1' or result|string == '1.0' %}
+                <div class="result-box positive">Positive</div>
+            {% elif result|string == '0' or result|string == '0.0' %}
+                <div class="result-box negative">Negative</div>
+            {% else %}
+                <div class="result-box" style="background: #f5f5f5; color: #666;">{{ result }}</div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+</body>
+</html>
