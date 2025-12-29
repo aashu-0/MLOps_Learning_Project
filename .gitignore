@@ -208,7 +208,7 @@ __marimo__/
 
 # --- IGNORE ---
 dataset/
-models/
+*.pkl
 creds.txt
 workflow.txt
 local_s3/
