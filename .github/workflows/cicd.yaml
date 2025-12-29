@@ -3,46 +3,99 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
 
 jobs:
-  testing-and-deployment:
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-
+    
     steps:
-      # Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # Setup Python
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # Install uv
       - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      # Cache uv dependencies
-      - name: Cache uv
-        uses: actions/cache@v4
+        uses: astral-sh/setup-uv@v2
         with:
-          path: |
-            ~/.cache/uv
-          key: ${{ runner.os }}-uv-${{ hashFiles('uv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-uv-
+          enable-cache: true
 
-      # Sync dependencies
-      - name: Install dependencies
-        run: |
-          uv sync --frozen
+      - name: Sync dependencies
+        run: uv sync --frozen
 
-      # Run DVC pipeline inside uv env
-      - name: Run pipeline
-        env:
-          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-        run: |
-          dvc repro
+      - name: Run unit tests
+        run: uv run pytest tests/ -v --tb=short
+
+      - name: Run linting checks
+        run: uv run pylint src/ --disable=all --enable=E,F
+
+  pipeline:
+    name: Run MLOps Pipeline
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Set up DVC
+        run: uv run dvc remote modify -u myremote 'https://dagshub.com/${{ secrets.DAGSHUB_USER }}/MLOps_Learning_Project.dvc'
+
+      - name: Run DVC pipeline
+        run: uv run dvc repro
+
+      - name: Register model
+        run: uv run python src/model/register_model.py
+
+  promote:
+    name: Promote Model to Champion
+    runs-on: ubuntu-latest
+    needs: pipeline
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: Promote model to champion
+        run: uv run python scripts/promote_model.py
