@@ -11,14 +11,20 @@ import mlflow.sklearn
 import dagshub
 import os
 from src.logger import logging
+from dotenv import load_dotenv
 
+load_dotenv()
+
+import warnings
+warnings.simplefilter("ignore", UserWarning)
+warnings.filterwarnings("ignore")
 
 # Below code block is for production use
 # -------------------------------------------------------------------------------------
 # Set up DagsHub credentials for MLflow tracking
-dagshub_token = os.getenv("DASGHUB_TOKEN")
+dagshub_token = os.getenv("DAGSHUB_TOKEN")
 if not dagshub_token:
-    raise EnvironmentError("DASGHUB_TOKEN environment variable is not set")
+    raise EnvironmentError("DAGSHUB_TOKEN environment variable is not set")
 
 os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
 os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token

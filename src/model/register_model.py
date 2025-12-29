@@ -6,6 +6,9 @@ import logging
 from src.logger import logging
 import os
 import dagshub
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import warnings
 warnings.simplefilter("ignore", UserWarning)
@@ -14,9 +17,9 @@ warnings.filterwarnings("ignore")
 # Below code block is for production use
 # -------------------------------------------------------------------------------------
 # Set up DagsHub credentials for MLflow tracking
-dagshub_token = os.getenv("DASGHUB_TOKEN")
+dagshub_token = os.getenv("DAGSHUB_TOKEN")
 if not dagshub_token:
-    raise EnvironmentError("DASGHUB_TOKEN environment variable is not set")
+    raise EnvironmentError("DAGSHUB_TOKEN environment variable is not set")
 
 os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
 os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
@@ -62,9 +65,9 @@ def register_model(model_name: str, model_info: dict):
         model_version = mlflow.register_model(model_uri, model_name)
         logging.info(f'Model {model_name} registered successfully')
         
-        # Set the "staging" alias for the registered model version
-        client.set_registered_model_alias(model_name, "staging", model_version.version)
-        logging.info(f'Model {model_name} version {model_version.version} registered and aliased as "staging".')
+        # Set the alias for the registered model version
+        client.set_registered_model_alias(model_name, alias="Candidate", version=model_version.version)
+        logging.info(f'Model {model_name} version {model_version.version} registered')
     except Exception as e:
         logging.error('Error during model registration: %s', e)
         raise
