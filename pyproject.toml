@@ -9,4 +9,5 @@ dependencies = [
     "dvc>=3.65.0",
     "mlflow>=3.8.0",
     "nltk>=3.9.2",
+    "prometheus-client>=0.23.1",
 ]
