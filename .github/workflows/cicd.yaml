@@ -25,7 +25,7 @@ jobs:
           uv sync --frozen
 
       - name: Run DVC pipeline
-      env:
+        env:
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
           PYTHONPATH: ${{ github.workspace }}
         run: |
