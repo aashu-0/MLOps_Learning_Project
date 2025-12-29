@@ -25,10 +25,11 @@ jobs:
           uv sync --frozen
 
       - name: Run DVC pipeline
-        env:
+      env:
           DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          uv run dvc repro
+          uv run dvc repro --verbose
 
       - name: Run model tests
         env:
