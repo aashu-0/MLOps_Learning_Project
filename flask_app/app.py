@@ -83,13 +83,12 @@ PREDICTION_COUNT = Counter(
 model_name = "LR_Classifier"
 
 def get_latest_model_version(model_name):
-    """Get the latest model version using aliases (non-deprecated approach)."""
+    """Get the latest model version using @Champion alias (non-deprecated approach)."""
     client = mlflow.MlflowClient()
     try:
-        # Try to get model with 'staging' alias (modern approach)
+        # Try to get model with '@Champion' alias
         registered_model = client.get_registered_model(model_name)
-        # Check for staging alias first, then production
-        for alias_name in ["staging", "production"]:
+        for alias_name in ["Champion", "staging", "production"]:
             if alias_name in registered_model.aliases:
                 return registered_model.aliases[alias_name]
         # If no aliases, return the latest version
