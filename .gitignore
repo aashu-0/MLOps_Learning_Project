@@ -212,3 +212,4 @@ dataset/
 creds.txt
 workflow.txt
 local_s3/
+notes/
