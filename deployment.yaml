@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlops-project-deployment
+  labels:
+    app: mlops-project
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mlops-project
+  template:
+    metadata:
+      labels:
+        app: mlops-project
+    spec:
+      containers:
+        - name: mlops-project
+          image: IMAGE_URI
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DAGSHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: dagshub-secret
+                  key: DAGSHUB_TOKEN
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
