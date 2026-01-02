@@ -1,4 +1,4 @@
 [core]
-    remote = mylocal
-['remote "mylocal"']
-    url = ../local_s3
+    remote = s3remote
+['remote "s3remote"']
+    url = s3://mshrashu-dvc-storage
